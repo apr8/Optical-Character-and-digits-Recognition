@@ -1,5 +1,24 @@
 import numpy as np
 
+'''
+    The data is stored in a dict called dataSet, to use this class do the following:\
+
+    d = DataReader('../data_set/letter.data')
+
+    # dataset variable with following fields
+    d.dataSet
+
+    where filename = ../data_set/letter.data
+    pass in the required filename
+
+    Fields used:
+    0.id: each letter is assigned a unique integer id
+    1.letter: a-z
+    2.next_id: id for next letter in the word, -1 if last letter
+    3.fold: 0-9 -- cross-validation fold
+    4.p_i_j: 0/1 -- value of pixel in row i, column j
+'''
+
 class DataReader():
 
     def __init__(self, filename):
@@ -8,7 +27,7 @@ class DataReader():
         Sets up the required class variables from the parsed file.
         input : filename along with its path to be parsed
 
-        Fields:
+        Fields in actual .data file:
             1.id: each letter is assigned a unique integer id
             2.letter: a-z
             3.next_id: id for next letter in the word, -1 if last letter
