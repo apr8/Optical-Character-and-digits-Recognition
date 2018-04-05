@@ -1,4 +1,5 @@
 import numpy as np
+#import matplotlib.pyplot as plt
 
 '''
     The data is stored in a dict called dataSet, to use this class do the following:\
@@ -6,8 +7,8 @@ import numpy as np
     d = DataReader('../data_set/letter.data')
 
     # dataset variable with following fields
+    # type dict of dict
     d.dataSet
-
     where filename = ../data_set/letter.data
     pass in the required filename
 
@@ -92,6 +93,8 @@ class DataReader():
 
                 print "line",line_no, self.dataSet[line_no]
 
+                #plt.imshow(pixel_np)
+                #plt.show()
 
         return
 
