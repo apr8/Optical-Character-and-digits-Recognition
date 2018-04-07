@@ -1,17 +1,13 @@
 import numpy as np
-#import matplotlib.pyplot as plt
+from collections import defaultdict
 
 '''
     The data is stored in a dict called dataSet, to use this class do the following:\
-
     d = DataReader('../data_set/letter.data')
-
     # dataset variable with following fields
-    # type dict of dict
     d.dataSet
     where filename = ../data_set/letter.data
     pass in the required filename
-
     Fields used:
     0.id: each letter is assigned a unique integer id
     1.letter: a-z
@@ -23,11 +19,9 @@ import numpy as np
 class DataReader():
 
     def __init__(self, filename):
-
         '''
         Sets up the required class variables from the parsed file.
         input : filename along with its path to be parsed
-
         Fields in actual .data file:
             1.id: each letter is assigned a unique integer id
             2.letter: a-z
@@ -37,68 +31,72 @@ class DataReader():
             6.fold: 0-9 -- cross-validation fold
             7.p_i_j: 0/1 -- value of pixel in row i, column j
         '''
-
-
         # filename to be parsed
         self.fileName = filename
-
         # Has all the seven feilds as specfied above
         self.dataSet = {}
-
         # parse the file
-        self.parseFile()
-
+        self.parseFile()        
 
     def parseFile(self):
-
         '''
         Parses the file name specifed in the constructor into a dictonary
         which has the feilds specified above
         '''
-
         # opens the file to be parsed
         file_parse = open(self.fileName, 'r')
-
         # got through each line and add the lines to the dictionary
-        for line_no, line in enumerate(file_parse):
-
-
-                # create a dictionary for each line
-                self.dataSet[line_no] = {}
-
-                # strip the line off tabs
-                values = line.strip().split('\t')
-
-                # test print
-                #print type(line), line[2], type(values), int(values[0]), line_no
-
-                # index of the line
-                self.dataSet[line_no][0] = int(values[0])
-
-                # lable of the line
-                self.dataSet[line_no][1] = values[1]
-
-                # next word index
-                self.dataSet[line_no][2] = int(values[2])
-
-                # cross validation fold used
-                self.dataSet[line_no][3] = int(values[5])
-
-                # values of the pixels
-                pixel = np.array(map(int, values[6:]))
-
-                # convert to an np array and reshape the pixel
-                pixel_np = pixel.reshape((16,8))
-                self.dataSet[line_no][4] = np.copy(pixel_np)
-
-                print "line",line_no, self.dataSet[line_no]
-
-                #plt.imshow(pixel_np)
-                #plt.show()
-
+        for line_no, line in enumerate(file_parse):            
+            # create a dictionary for each line
+            self.dataSet[line_no] = {}
+            # strip the line off tabs
+            values = line.strip().split('\t')
+                        
+            # index of the line
+            self.dataSet[line_no][0] = int(values[0])
+            # lable of the line
+            self.dataSet[line_no][1] = values[1]
+            # next word index
+            self.dataSet[line_no][2] = int(values[2])
+            # cross validation fold used
+            self.dataSet[line_no][3] = int(values[5])
+            # values of the pixels            
+            pixel = np.array(list(map(int, values[6:])))
+            # convert to an np array and reshape the pixel            
+            pixel_np = pixel.reshape((16,8))
+            self.dataSet[line_no][4] = np.copy(pixel_np)
+            #print("line",line_no, self.dataSet[line_no])
         return
+    
+    def build_test_words(self):
+        test_words = defaultdict(lambda : [])        
+        word = []
+        for key, val in self.dataSet.items():
+            # val[0] is the id and val[2] is the next id 
+            if (val[0] == key+1) and (val[2] == val[0]+1):
+                word.append(val[1])
+            elif (val[0] == key+1) and (val[2] == -1):
+                word.append(val[1])                
+                # val[3] is the cross validation fold
+                test_words[val[3]].append(word)
+                word = []
+        return test_words        
+        
+    def build_all_words(self):
+        '''
+        Groups the letters into words based on the letter id field 0 and 2        
+        words = {}, Dictionary of words
+        '''
+        words = defaultdict(lambda : [])
+        itr = 0
+        for key, val in self.dataSet.items():
+            if (val[0] == key+1) and (val[2] == val[0]+1):
+                words[itr].append(val[1])
+            elif (val[0] == key+1) and (val[2] == -1):
+                words[itr].append(val[1])
+                itr += 1                
+        return words        
 
 if __name__ == "__main__":
-
-        # read the given file
-        d = DataReader('../data_set/letter.data')
+    # read the given file
+    d = DataReader('./letter.data')
