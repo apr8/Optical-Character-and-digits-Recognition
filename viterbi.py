@@ -35,12 +35,12 @@ class Viterbi():
         self.hmm_word = {}
 
         # create an empty trellis (initialization)
-        self.trellis = np.zeros((26, len(word)))
+        self.trellis = np.ones((26, len(word))) * -10**50
         for count, i in enumerate(list(map(chr, range(97, 123)))):
             # add the initial start log probabilities
             #print self.word
             #print emission[(i, self.word[0])], trans[('start', i)]
-            self.trellis[count, 0] = trans[('start', i)] + emission[(i, self.word[0])]
+            self.trellis[count, 0] = trans[('**START**', i)] + emission[(i, self.word[0])]
 
         self.recursionStep()
 
@@ -60,13 +60,15 @@ class Viterbi():
                 # loop over all the lables to calculate the max of trellis
                 for c, l in enumerate(list(map(chr, range(97, 123)))):
                     # introducing a temp variable for each combination of trellis
-                    tmp = np.exp(self.trellis[c, i] + self.trans[(l, j)])
+                    tmp = self.trellis[c, i] + self.trans[(l, j)]
+
+                    #print tmp, l, j, i, np.exp(self.trellis[count, i + 1])
 
                     # check if tmp is greater than previously stored trellis, if so replace
                     if tmp > self.trellis[count, i + 1]:
-                        self.trellis[count, i + 1] = np.log(tmp)
+                        #print 'if', tmp, l, j, i, np.exp(self.trellis[count, i + 1])
+                        self.trellis[count, i + 1] = tmp
                         # update the back pointer
-                        #print tmp, l, j
                         self.backpointer[i][count] = l
                         #print l, self.backpointer
                 # also add the emission probability at the end
@@ -85,13 +87,13 @@ class Viterbi():
         index = lable_index
         # back propagates over the back pointer
         i = len(self.word) - 2
-        print self.backpointer, self.trellis
-        print np.shape(self.trellis)
-        while i > 0:
+        #print self.backpointer, self.trellis
+        #print np.shape(self.trellis)
+        while i >= 0:
             # back propagates from the maximum value(letter)
 
             letter = self.backpointer[i][index]
-            print 'letter',letter, i
+            #print 'letter',letter, i
             self.hmm_word[i] = letter
             #print letter, index
 
@@ -99,9 +101,9 @@ class Viterbi():
             index = ord(letter) - 97
 
             # decrement i
-            i -= 1
+            i = i - 1
 
-            return
+        return
 
     def calculateMaxValue(self):
         '''
@@ -114,9 +116,9 @@ class Viterbi():
         vit_max = 0
         for count, j in enumerate(list(map(chr, range(97, 123)))):
             #check if its greater
-            if np.exp(self.trellis[count, len(self.word) - 1] + self.trans[(j, 'end')]) > vit_max:
+            if np.exp(self.trellis[count, len(self.word) - 1] + self.trans[(j, '**END**')]) > vit_max:
                 # update the max value and arg
-                vit_max = self.trellis[count, len(self.word) - 1] + self.trans[(j, 'end')]
+                vit_max = self.trellis[count, len(self.word) - 1] + self.trans[(j, '**END**')]
                 lable_max = j
                 lable_index = count
 
