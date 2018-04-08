@@ -39,8 +39,7 @@ class DataReader():
         Parses the file name specifed in the constructor into a dictonary
         which has the feilds specified above
         '''
-        train_set = {}
-        test_set = {}
+        data_set = {}        
         # opens the file to be parsed
         file_parse = open(self.fileName, 'r')
         
@@ -63,26 +62,22 @@ class DataReader():
             pixel_np = pixel.reshape((16,8))
             data[4] = np.copy(pixel_np)
             
-            # Cross-Validation fold 8 and 9 used for testing and rest for training.            
-            if data[3] == 8 or data[3] == 9:
-                # create a dictionary for each line                                
-                test_set[line_no] = data                                                            
-            else:
-                train_set[line_no] = data
+            # create a dictionary for each line                                
+            data_set[line_no] = data                                                                        
                 
-        return train_set, test_set        
+        return data_set
     
     def build_test_words(self, data):
-        test_words = defaultdict(lambda : [])        
+        test_words = []
         word = []
-        for key, val in data.items():
-            # val[0] is the id and val[2] is the next id 
-            if (val[0] == key+1) and (val[2] == val[0]+1):
-                word.append(val[1])
-            elif (val[0] == key+1) and (val[2] == -1):
-                word.append(val[1])                
+        for val in data:
+            # val[2] is the id and val[3] is the next id 
+            if (val[3] == val[2]+1):
+                word.append(val[0])
+            elif (val[3] == -1):
+                word.append(val[0])                
                 # val[3] is the cross validation fold
-                test_words[val[3]].append(word)
+                test_words.append(word)
                 word = []
         return test_words        
         

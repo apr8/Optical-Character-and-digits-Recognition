@@ -1,5 +1,6 @@
 import numpy as np
 import data_reader
+import random
 from collections import defaultdict, Counter
 from viterbi import Viterbi
 
@@ -16,12 +17,13 @@ class Naive_Bayes():
                       for each label. Dimension of 1x129 - 1x128 for log_pxy ans 1x1 for log_py.
         '''
         self.dt = data_reader.DataReader(filename)
-        self.train, self.test = self.dt.parseFile()
+        self.data = self.dt.parseFile()
         self.theta_nb = defaultdict(float)
         self.labels = []
         self.START_LETTER = '**START**'
         self.END_LETTER = '**END**'
         self.smoothing = 0.1
+        self.smooth_hmm = 0.1
 
     def group_data(self,data):
         cv_data = defaultdict(lambda : [])
@@ -33,19 +35,17 @@ class Naive_Bayes():
             pixels = val[4]
             # Flatten the 2d pixels into a single dimension vector of 128-dimenstions
             flatten_pixels = np.ndarray.flatten(pixels).reshape(1,-1)
+            # val[0] is the id and val[2] is the next_id            
             # val[3] is the cross validation fold
-            cv_data[val[3]].append((label,flatten_pixels))
+            cv_data[val[3]].append((label,flatten_pixels,val[0],val[2]))
         return cv_data
     
     def cross_validation(self):                
-        cv_data = self.group_data(self.train)        
-
+        cv_data = self.group_data(self.data)        
         # The transition probabilities are done on the entire train and not on each fold.
-        trans_probs = self.comp_transition_prob(self.train)
-        # Get the words from cv dataset
-        cv_words = self.dt.build_test_words(self.train)
-        # Do 8-fold cross validation below from training and validation, the other 2 folds are used purely for testing.
-        k = 8        
+        trans_probs = self.comp_transition_prob(self.data)        
+        # Do 10-fold cross validation below.
+        k = 10        
         for i in range(0,k):
             train_set = []
             valid_set = cv_data[i]            
@@ -55,45 +55,28 @@ class Naive_Bayes():
                     train_set += cv_data[j]
             # Do the Naive Bayes Classification here
             self.estimate_nb(train_set)
-            nb_acc, nb_pred_labels = self.predict(valid_set)                        
-            nb_act_labels = [item[0] for item in valid_set]
-            print("Validation Accuracy of Naive Bayes ",nb_acc)
-            
+            nb_pred_labels = self.predict(valid_set)                        
+            nb_act_labels = [item[0] for item in valid_set]                        
+            nb_acc = len(np.where(np.array(nb_pred_labels) == np.array(nb_act_labels))[0])
+            print("Validation Accuracy of Naive Bayes ",nb_acc/len(nb_act_labels))
+                        
             # The emission probabilities are done for each cv dataset.
             emission_probs = self.comp_emission_prob(nb_pred_labels,nb_act_labels)
-            valid_words = cv_words[i]
+            valid_words = self.dt.build_test_words(valid_set)            
             # Do the Viterbi step here            
             vt_pred_labels = []
             vt_act_labels = []
-            for l in range(0,len(valid_words)):
-                vit = Viterbi(emission_probs,trans_probs,valid_words[l])
-                vt_act_labels += valid_words[l]
-                vt_pred_labels += vit.hmmWord()           
-            vt_acc = len(np.where(np.array(vt_pred_labels) == np.array(vt_act_labels))[0])
-            print("Validation Accuracy of Viterbi ",vt_acc/len(vt_act_labels))
-            
-        # Do the testing below     
-        test_data = self.group_data(self.test)
-        k = 10
-        # Get the words from testing dataset
-        cv_words = self.dt.build_test_words(self.test)
-        for i in range(8,k):
-            nb_acc, nb_pred_labels = self.predict(test_data[i])                        
-            nb_act_labels = [item[0] for item in test_data[i]]
-            print("Testing Accuracy of Naive Bayes ",nb_acc)
-            
-            # The emission probabilities are done for each testing dataset.
-            emission_probs = self.comp_emission_prob(nb_pred_labels,nb_act_labels)
-            test_words = cv_words[i]
-            # Do the Viterbi step here            
-            vt_pred_labels = []
-            vt_act_labels = []
-            for l in range(0,len(test_words)):
-                vit = Viterbi(emission_probs,trans_probs,test_words[l])
-                vt_act_labels += test_words[l]
-                vt_pred_labels += vit.hmmWord()           
-            vt_acc = len(np.where(np.array(vt_pred_labels) == np.array(vt_act_labels))[0])
-            print("Testing Accuracy of Viterbi ",vt_acc/len(vt_act_labels))
+            nb_pred_labels = []
+            itr = 0
+            for w in valid_words:                
+                nb_pred_word = self.predict(valid_set[itr:(itr+len(w))])
+                nb_pred_labels += nb_pred_word
+                vit = Viterbi(emission_probs,trans_probs,nb_pred_word)                
+                vt_pred_labels += vit.hmmWord()                
+                itr += len(w)
+            nb_acc = len(np.where(np.array(nb_pred_labels) == np.array(nb_act_labels))[0])
+            vt_acc = len(np.where(np.array(vt_pred_labels) == np.array(nb_act_labels))[0])                        
+            print("Validation Accuracy of Viterbi ",vt_acc/len(nb_act_labels))                    
 
     def proc_raw_feats(self,train_set):
         raw_feats = defaultdict(lambda : np.zeros([1,128],dtype=int))
@@ -150,8 +133,7 @@ class Naive_Bayes():
 
     def predict(self,test_set):
         pred_labels = []
-        labels = set(self.labels)
-        nos_incorrect = 0
+        labels = set(self.labels)        
         for item in test_set:
             act_label = item[0]
             pixels = item[1]
@@ -163,11 +145,8 @@ class Naive_Bayes():
                 # Add the log prior probability
                 scores[key] += val[-1]
             pred_label = self.argmax(scores)
-            pred_labels.append(pred_label)
-            if act_label != pred_label:
-                nos_incorrect += 1
-        acc = nos_incorrect/len(test_set)        
-        return acc, pred_labels
+            pred_labels.append(pred_label)                    
+        return pred_labels
 
     def comp_emission_prob(self,pred_labels,act_labels):
         # First compute the emission counts which is the nos of time character 'i'
@@ -180,20 +159,20 @@ class Naive_Bayes():
             emit_counts[act_char].update(pred_labels[indices])
 
         # Use the emission counts to compute the emission probabilities
-        s = self.smoothing
+        s = self.smooth_hmm
         emit_weights = defaultdict(float)
         all_letters = set(self.labels)
         for act_char in all_letters:
             # if the character is present in the emission counts
             if act_char in emit_counts:
-                den = np.sum(list(emit_counts[act_char].values())) + (26 * s)
+                den = np.sum(list(emit_counts[act_char].values())) + (26 * s)              
                 for pred_char in all_letters:
                     num = emit_counts[act_char][pred_char] + s
                     emit_weights[(act_char,pred_char)] = np.log(num/den)
             # if the character is not present in the emission counts
             else:
                 for pred_char in all_letters:
-                    emit_weights[(act_char,pred_char)] = np.log((s)/(26 * s))
+                    emit_weights[(act_char,pred_char)] = np.log((s)/(26 * s))                                        
 
         return emit_weights
 
@@ -210,7 +189,7 @@ class Naive_Bayes():
             trans_counts[val[-1]].update([self.END_LETTER])
 
         # Use the transition counts to compute the transition probabilities
-        s = self.smoothing
+        s = self.smooth_hmm
         trans_weights = defaultdict(float)
         all_letters = list(trans_counts.keys()) + [self.END_LETTER]
         V = len(list(trans_counts.keys()))
@@ -220,7 +199,9 @@ class Naive_Bayes():
                     trans_weights[(letter1,letter2)] = -np.inf
                 else:
                     num = trans_counts[letter1][letter2] + s
-                    den = sum(trans_counts[letter1].values()) + (V * s)
+                    den = sum(trans_counts[letter1].values()) + (V * s)                       
                     trans_weights[(letter1,letter2)] = np.log(num/den)
         
         return trans_weights
+
+    
