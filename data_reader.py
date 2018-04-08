@@ -32,46 +32,50 @@ class DataReader():
             7.p_i_j: 0/1 -- value of pixel in row i, column j
         '''
         # filename to be parsed
-        self.fileName = filename
-        # Has all the seven feilds as specfied above
-        self.dataSet = {}
-        # parse the file
-        self.parseFile()        
+        self.fileName = filename                       
 
     def parseFile(self):
         '''
         Parses the file name specifed in the constructor into a dictonary
         which has the feilds specified above
         '''
+        train_set = {}
+        test_set = {}
         # opens the file to be parsed
         file_parse = open(self.fileName, 'r')
+        
         # got through each line and add the lines to the dictionary
         for line_no, line in enumerate(file_parse):            
-            # create a dictionary for each line
-            self.dataSet[line_no] = {}
             # strip the line off tabs
             values = line.strip().split('\t')
-                        
+            data = {}
             # index of the line
-            self.dataSet[line_no][0] = int(values[0])
+            data[0] = int(values[0])
             # lable of the line
-            self.dataSet[line_no][1] = values[1]
+            data[1] = values[1]
             # next word index
-            self.dataSet[line_no][2] = int(values[2])
+            data[2] = int(values[2])
             # cross validation fold used
-            self.dataSet[line_no][3] = int(values[5])
+            data[3] = int(values[5])
             # values of the pixels            
             pixel = np.array(list(map(int, values[6:])))
             # convert to an np array and reshape the pixel            
             pixel_np = pixel.reshape((16,8))
-            self.dataSet[line_no][4] = np.copy(pixel_np)
-            #print("line",line_no, self.dataSet[line_no])
-        return
+            data[4] = np.copy(pixel_np)
+            
+            # Cross-Validation fold 8 and 9 used for testing and rest for training.            
+            if data[3] == 8 or data[3] == 9:
+                # create a dictionary for each line                                
+                test_set[line_no] = data                                                            
+            else:
+                train_set[line_no] = data
+                
+        return train_set, test_set        
     
-    def build_test_words(self):
+    def build_test_words(self, data):
         test_words = defaultdict(lambda : [])        
         word = []
-        for key, val in self.dataSet.items():
+        for key, val in data.items():
             # val[0] is the id and val[2] is the next id 
             if (val[0] == key+1) and (val[2] == val[0]+1):
                 word.append(val[1])
@@ -82,14 +86,14 @@ class DataReader():
                 word = []
         return test_words        
         
-    def build_all_words(self):
+    def build_all_words(self, data):
         '''
         Groups the letters into words based on the letter id field 0 and 2        
         words = {}, Dictionary of words
         '''
         words = defaultdict(lambda : [])
         itr = 0
-        for key, val in self.dataSet.items():
+        for key, val in data.items():
             if (val[0] == key+1) and (val[2] == val[0]+1):
                 words[itr].append(val[1])
             elif (val[0] == key+1) and (val[2] == -1):
