@@ -1,0 +1,123 @@
+import numpy as np
+
+class Viterbi():
+
+    def __init__(self, emission, trans, word):
+        '''
+        input: emission
+               trans
+               word
+
+        emission is an 26X26 dict storing the log-probability of observing word n, given a label l
+
+        P(n|l) = emission[(n,l)]
+
+        trans is an LxL dict storing the transition log-probability from the previous label (Yp) to the current label (Yc)
+
+        P(Yc|Yp) = trans[(Yp,Yc)]
+
+        start is a part of trans dict storing the transition log-probability of the beginning of a sentence <s> to every label l
+
+        P(l|<s>) = trans[(start, l)]
+
+        end is a Lx1 vector storing the transition log-probability from the label l of the last word to the end of the sentence </s>
+
+        P(</s>|l) = trans[(l, end)]
+
+        word is the list of observed charecters
+        '''
+
+        # define these as class variables
+        self.emission = emission
+        self.trans = trans
+        self.word = word
+        self.backpointer = {}
+        self.hmm_word = {}
+
+        # create an empty trellis (initialization)
+        self.trellis = np.zeros((26, len(word)))
+        for count, i in enumerate(list(map(chr, range(97, 123)))):
+            # add the initial start log probabilities
+            #print self.word
+            #print emission[(i, self.word[0])], trans[('start', i)]
+            self.trellis[count, 0] = trans[('start', i)] + emission[(i, self.word[0])]
+
+        self.recursionStep()
+
+        print self.hmm_word, word
+
+    def recursionStep(self):
+        '''
+        recurcively loops over the trellis to find the path with maximum probability
+        '''
+        # loop over n time steps
+        for i in range(len(self.word) - 1):
+            # initialize and empty back pointer array
+            self.backpointer[i] = {}
+            # loop over each label to find the maximun trellis
+            for count, j in enumerate(list(map(chr, range(97, 123)))):
+
+                # loop over all the lables to calculate the max of trellis
+                for c, l in enumerate(list(map(chr, range(97, 123)))):
+                    # introducing a temp variable for each combination of trellis
+                    tmp = np.exp(self.trellis[c, i] + self.trans[(l, j)])
+
+                    # check if tmp is greater than previously stored trellis, if so replace
+                    if tmp > self.trellis[count, i + 1]:
+                        self.trellis[count, i + 1] = np.log(tmp)
+                        # update the back pointer
+                        #print tmp, l, j
+                        self.backpointer[i][count] = l
+                        #print l, self.backpointer
+                # also add the emission probability at the end
+                self.trellis[count, i + 1] += self.emission[(j, self.word[i + 1])]
+
+        # calculate the maximum values
+        lable_max, vit_max, lable_index = self.calculateMaxValue()
+        self.hmm_word[len(self.word) - 1] = lable_max
+
+        # do backpropagation and calculte the remaining n-1 word
+        self.backpropagate(lable_index)
+        return
+
+    def backpropagate(self, lable_index):
+        # copy the value to a local variable
+        index = lable_index
+        # back propagates over the back pointer
+        i = len(self.word) - 2
+        print self.backpointer, self.trellis
+        print np.shape(self.trellis)
+        while i > 0:
+            # back propagates from the maximum value(letter)
+
+            letter = self.backpointer[i][index]
+            print 'letter',letter, i
+            self.hmm_word[i] = letter
+            #print letter, index
+
+            # calculate the corresponding index
+            index = ord(letter) - 97
+
+            # decrement i
+            i -= 1
+
+            return
+
+    def calculateMaxValue(self):
+        '''
+        Calculate the maximum value and arg for the final step and returns the arg
+        return : arg_max of Nth time
+        '''
+        # loop over all the letter finally and calculate the maximum value and the corresponding arg
+        lable_max = 0
+        lable_index = 0
+        vit_max = 0
+        for count, j in enumerate(list(map(chr, range(97, 123)))):
+            #check if its greater
+            if np.exp(self.trellis[count, len(self.word) - 1] + self.trans[(j, 'end')]) > vit_max:
+                # update the max value and arg
+                vit_max = self.trellis[count, len(self.word) - 1] + self.trans[(j, 'end')]
+                lable_max = j
+                lable_index = count
+
+        return lable_max, vit_max, lable_index
