@@ -46,9 +46,9 @@ class Viterbi():
 
         print(self.hmm_word, word)
 
+    def hmmWord(self):
         out_word = []
 
-    def hmmWord():
         # loop over all the word and send as list
         for i in range(len(self.word)):
             # return the output word
