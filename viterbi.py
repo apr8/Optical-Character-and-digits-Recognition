@@ -40,11 +40,10 @@ class Viterbi():
             # add the initial start log probabilities
             #print self.word
             #print emission[(i, self.word[0])], trans[('start', i)]
-            self.trellis[count, 0] = trans[('**START**', i)] + emission[(i, self.word[0])]
+            self.trellis[count, 0] = trans[('**START**', i)] + emission[(self.word[0], i)]
 
         self.recursionStep()
-
-        print(self.hmm_word, word)
+        #print(self.hmm_word, word)
 
     def hmmWord(self):
         out_word = []
@@ -55,7 +54,6 @@ class Viterbi():
             out_word.append(self.hmm_word[i])
 
         return out_word
-
 
     def recursionStep(self):
         '''
@@ -83,7 +81,7 @@ class Viterbi():
                         self.backpointer[i][count] = l
                         #print l, self.backpointer
                 # also add the emission probability at the end
-                self.trellis[count, i + 1] += self.emission[(j, self.word[i + 1])]
+                self.trellis[count, i + 1] += self.emission[(self.word[i + 1], j)]
 
         # calculate the maximum values
         lable_max, vit_max, lable_index = self.calculateMaxValue()
