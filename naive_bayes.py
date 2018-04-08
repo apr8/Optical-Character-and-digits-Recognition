@@ -38,7 +38,7 @@ class Naive_Bayes():
         # The transition probabilities are done on the entire dataset and not on each fold.
         trans_probs = self.comp_transition_prob()        
         # Get the test words for viterbi
-        test_words = dt.build_test_words()
+        test_words = self.dt.build_test_words()
         # Do 10-fold cross validation 
         k = 10
         test_acc = []
