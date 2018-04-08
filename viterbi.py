@@ -35,7 +35,7 @@ class Viterbi():
         self.hmm_word = {}
 
         # create an empty trellis (initialization)
-        self.trellis = np.ones((26, len(word))) * -10**50
+        self.trellis = np.ones((26, len(word))) * -np.inf
         for count, i in enumerate(list(map(chr, range(97, 123)))):
             # add the initial start log probabilities
             #print self.word
@@ -45,6 +45,13 @@ class Viterbi():
         self.recursionStep()
 
         print(self.hmm_word, word)
+
+        out_word = []
+        for i in range(len(self.word)):
+            # return the output word
+            out_word.append(self.hmm_word[i])
+
+        return out_word
 
     def recursionStep(self):
         '''
