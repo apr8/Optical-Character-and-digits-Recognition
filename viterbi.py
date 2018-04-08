@@ -47,11 +47,15 @@ class Viterbi():
         print(self.hmm_word, word)
 
         out_word = []
+
+    def hmmWord():
+        # loop over all the word and send as list
         for i in range(len(self.word)):
             # return the output word
             out_word.append(self.hmm_word[i])
 
         return out_word
+
 
     def recursionStep(self):
         '''
