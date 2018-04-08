@@ -44,7 +44,7 @@ class Viterbi():
 
         self.recursionStep()
 
-        print self.hmm_word, word
+        print(self.hmm_word, word)
 
     def recursionStep(self):
         '''
@@ -113,10 +113,10 @@ class Viterbi():
         # loop over all the letter finally and calculate the maximum value and the corresponding arg
         lable_max = 0
         lable_index = 0
-        vit_max = 0
+        vit_max = -np.inf
         for count, j in enumerate(list(map(chr, range(97, 123)))):
             #check if its greater
-            if np.exp(self.trellis[count, len(self.word) - 1] + self.trans[(j, '**END**')]) > vit_max:
+            if self.trellis[count, len(self.word) - 1] + self.trans[(j, '**END**')] > vit_max:
                 # update the max value and arg
                 vit_max = self.trellis[count, len(self.word) - 1] + self.trans[(j, '**END**')]
                 lable_max = j
