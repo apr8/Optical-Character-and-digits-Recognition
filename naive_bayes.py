@@ -54,8 +54,9 @@ class Naive_Bayes():
             acc, pred_labels = self.predict(test_set)
             act_labels = [item[0] for item in test_set]
             # The emission probabilities are done for each test dataset.
-            emission_probs = self.comp_emission_prob(pred_labels,act_labels)            
-            Viterbi(emission_probs,trans_probs,test_words[0][0])
+            emission_probs = self.comp_emission_prob(pred_labels,act_labels) 
+            for k in range(0,len(test_words[i])):
+                vit_pred_labels = Viterbi(emission_probs,trans_probs,test_words[i][k])
             test_acc.append(acc)
         print("Final test accuracy ", np.sum(test_acc)/k)
 
