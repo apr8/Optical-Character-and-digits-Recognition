@@ -8,6 +8,18 @@ Created on Tue Mar 20 16:41:24 2018
 
 import numpy as np
 import os, sys
+import pandas as pd
+
+def read_usps_data(filedata,filelabels):
+    data = []
+    labels = []
+    data = pd.read_csv(filedata, sep=",", header=None)
+    data = data.as_matrix()
+    with open(filelabels, "r") as f:
+        for line in f:
+            labels.append([line.strip()])
+
+    return data, labels
 
 def read_data_from_file(fileName):
     """"Function used to parse files, it returns 2 lists.
@@ -166,9 +178,11 @@ class Graph:
         Some portions of the forward_backward algorithm require to have to theta at current time as well as theta at previous
         time step, so self.THTA_previous will play the role of theta at previous time step"""
         self.data = data
-        self.dataShape = self.data.shape
+        #self.dataShape = self.data.shape
+        self.dataShape = (16,16,600)
         self.vertices = []
-        self.reshaped_data = np.empty((self.dataShape[2], self.dataShape[1]*self.dataShape[0]), dtype=int)
+        #self.reshaped_data = np.empty((self.dataShape[2], self.dataShape[1]*self.dataShape[0]), dtype=int)
+        self.reshaped_data = data
         self.THETA = np.zeros((self.dataShape[2],self.dataShape[2]))
         self.THETA_previous = np.zeros((self.dataShape[2],self.dataShape[2]))
 #        self.EDGE = np.zeros((self.dataShape[2],self.dataShape[2]))
@@ -311,12 +325,12 @@ class Graph:
 
 ##################################################################################################
 # These are just a couple of print statements for debbuging purposes            
-        print "For Vertex ", v.vertex_id
-        print self.THETA[v.vertex_id,v.vertex_id], self.THETA[v.vertex_id,v.get_neighbors()[0]], self.THETA[v.vertex_id,v.get_neighbors()[1]]
+        print("For Vertex ", v.vertex_id)
+        print(self.THETA[v.vertex_id,v.vertex_id], self.THETA[v.vertex_id,v.get_neighbors()[0]], self.THETA[v.vertex_id,v.get_neighbors()[1]])
         if num_neighbors >= 3:
-            print self.THETA[v.vertex_id,v.get_neighbors()[2]]
+            print(self.THETA[v.vertex_id,v.get_neighbors()[2]])
         if num_neighbors ==4:
-            print self.THETA[v.vertex_id,v.get_neighbors()[3]]
+            print(self.THETA[v.vertex_id,v.get_neighbors()[3]])
         # This return is not necessary, it was used while debbuging. Will be deleted later    
         return interim_exp
 #################################################################################################    
@@ -373,15 +387,16 @@ class Graph:
                     edges.append(n_vert_id)
             for i in range(len(theta)):
                 loss_edges.append(self.loss_edges(v,theta[i]))
+            print(loss_edges)
             min_loss_indx = np.argmin(loss_edges)
             add_edge_to_vert = edges[min_loss_indx]
             v.update_edge(1,v.get_neighbors().index(add_edge_to_vert))
-            print "Active Edges Forward ", v.get_edges()
+            print("Active Edges Forward ", v.get_edges())
             v.expand_set_edges()
             
             loss_prev = self.loss_edges(v,theta_prev[min_loss_indx])
             delta_f = loss_prev - loss_edges[min_loss_indx]
-            print "delta F ", delta_f, "epsilon ", epsilon
+            print("delta F ", delta_f, "epsilon ", epsilon)
             if delta_f <= epsilon:
                 break
             np.copyto(self.THETA_previous, self.THETA) 
@@ -405,12 +420,12 @@ class Graph:
                 min_loss_indx = np.argmin(loss_edges_r)
                 loss_prev = self.loss_edges(v,theta_r_prev[min_loss_indx])
                 delta_b = loss_edges_r[min_loss_indx] - loss_prev
-                print "delta B ", delta_b, "nu * DF ", nu*delta_f
+                print("delta B ", delta_b, "nu * DF ", nu*delta_f)
                 if (delta_b > nu*delta_f) or (v.set_edges_length() == 0):
                     break
                 remove_edge_to_vert = edges[min_loss_indx]
                 v.update_edge(0,v.get_neighbors().index(remove_edge_to_vert))
-                print "Active Edges Backward ", v.get_edges()
+                print("Active Edges Backward ", v.get_edges())
                 v.reduce_set_edges()
                 self.THETA[v.vertex_id,remove_edge_to_vert] = 0
                 self.minimize_loss_theta(v, step)
@@ -422,17 +437,17 @@ class Graph:
 #        interim_exp = self.minimize_loss_theta(self.vertices[0],0.01)
         for vertex in self.vertices:
             theta = self.forward_backward(vertex,0.01,5.0,0.4)
-        print "###########################It Ended####################################"
+        print("###########################It Ended####################################")
         np.savetxt("model_0.csv", self.THETA, delimiter=",")
 #        print "First Loss ", self.loss_edges(self.vertices[0],theta[0])
 #        print "Second Loss ", self.loss_edges(self.vertices[0],theta[1])
-        print theta
+        print(theta)
 #        int_sum = self.THETA[1,2]*np.multiply(self.reshaped_data[:,1],self.reshaped_data[:,2]) + \
 #                            self.THETA[1,33]*np.multiply(self.reshaped_data[:,1],self.reshaped_data[:,33]) + \
 #                                      self.THETA[1,1]*self.reshaped_data[:,1]
 #        int_exp = np.exp(int_sum).reshape((-1,1))
-        print "thehta_1 ", self.THETA[1,1], self.THETA[1,2], self.THETA[1,33]
-        print "theta_1 previous ", self.THETA_previous[1,1], self.THETA_previous[1,2], self.THETA_previous[1,33]
+        print("thehta_1 ", self.THETA[1,1], self.THETA[1,2], self.THETA[1,33])
+        print("theta_1 previous ", self.THETA_previous[1,1], self.THETA_previous[1,2], self.THETA_previous[1,33])
 #        print interim_exp.shape, int_exp.shape
 #        print np.array_equal(interim_exp, int_exp)
 #        print np.sum(interim_exp), np.sum(int_exp)
@@ -449,8 +464,8 @@ class Graph:
             
             
 
-fileName = "optdigits-orig.tra"
-train_data, train_labels = read_data_from_file(fileName)
+#fileName = "optdigits-orig.tra"
+#train_data, train_labels = read_data_from_file(fileName)
 
 
 
@@ -463,4 +478,7 @@ train_data, train_labels = read_data_from_file(fileName)
 #for i in range(1933,1923, -1):
 #    print train_labels[0,i]
 
-ising_model = Graph(train_data[0]).train()
+#ising_model = Graph(train_data[0]).train()
+data, labels = read_usps_data("tr_X.txt","tr_y.txt")
+data[data == 0] = -1
+ising_model = Graph(data[:600]).train()
