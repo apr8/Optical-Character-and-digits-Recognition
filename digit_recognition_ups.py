@@ -436,12 +436,10 @@ class Graph:
     
     def train(self, indices):
 #        interim_exp = self.minimize_loss_theta(self.vertices[0],0.01)
-        for vertex in self.vertices[indices[0],indices[1]]:
+        for vertex in self.vertices[indices[0]:indices[1]]:
             theta = self.forward_backward(vertex,0.01,95.0,0.4)
         print("###########################It Ended####################################")
         return self.THETA
-        
-                            
         
 #        self.THETA[v.vertex_id,v.vertex_id] = self.THETA[v.vert_id,v.vert_id] - ( step * (1/self.dataShape[2]) *    ) 
         
@@ -475,9 +473,10 @@ data[data == 0] = -1
 #ising_model = Graph(data[:600]).train()
 
 ising_model = Graph(data[:600,:])
+#ising_model.train([[0,64], [64,128],[128,192], [192,256]])
 results = Pool(3).map(ising_model.train, [[0,64], [64,128],[128,192], [192,256]])
 
 np.savetxt("model_ups_1.csv", results[0], delimiter=",")
 np.savetxt("model_ups_2.csv", results[1], delimiter=",")
 np.savetxt("model_ups_3.csv", results[2], delimiter=",")
-np.savetxt("model_ups_4.csv", results[2], delimiter=",")
+np.savetxt("model_ups_4.csv", results[3], delimiter=",")
