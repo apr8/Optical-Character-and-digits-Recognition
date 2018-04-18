@@ -230,6 +230,9 @@ class Graph:
             else:
                 vert.add_neighbor([vert.vertex_id-32, vert.vertex_id-1, vert.vertex_id+1, vert.vertex_id+32])
                 vert.add_edges([0,0,0,0])
+                
+    def get_vertices(self):
+        return self.vertices
     def loss_theta(self, v):
         """Implementation of loss function...
         Ended up not using this method. Can be deleted, but keeping it until 100% sure that it
@@ -461,6 +464,7 @@ train_data, train_labels = read_data_from_file(fileName)
 #for i in range(1933,1923, -1):
 #    print train_labels[0,i]
 
+##########################################################################################
 ising_model_3 = Graph(train_data[3])
 results = Pool(4).map(ising_model_3.train, [[0,256], [256,512],[512,768],[768,1024]])
 
@@ -468,3 +472,7 @@ np.savetxt("model_3_1.csv", results[0], delimiter=",")
 np.savetxt("model_3_2.csv", results[1], delimiter=",")
 np.savetxt("model_3_3.csv", results[2], delimiter=",")
 np.savetxt("model_3_4.csv", results[3], delimiter=",")
+###########################################################################################
+
+#vertices = ising_model_3.get_vertices()
+#print vertices[1022].get_neighbors()
