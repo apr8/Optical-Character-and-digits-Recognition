@@ -46,6 +46,9 @@ This is the final project for the course Probabilistic graphical models.
   ###### After the above file is created comment out all the lines from 452 to 475 in digits_recognition_3.py before doing the below 
   
 ##### 2. Run the Gibbs Sampling algorithm to do inference of the structure learned above
+###### Modify line 6 of digit_infer.py shown below to include the model_3_*.csv file generated above 
+###### weights_data = np.genfromtxt('model_3_*.csv', delimiter=',')
+###### Now run the below -
   python digit_infer.py
 
 
