@@ -36,4 +36,7 @@ This is the final project for the course Probabilistic graphical models.
   digits_recognition_2.py  (contains the source code for learning structure of digit 2) <br />
   digits_recognition_3.py  (contains the source code for learning structure of digit 3) <br />
   digits_recognition.py (contains the general implementation of forward-backward algorithm) <br />
+  digit_infer.py (contains source code for Gibbs Sampling which automatically runs the forward-backward algorithm)
+  
+#### To run the digit recognition algorithms and to get the learned structure 
   
