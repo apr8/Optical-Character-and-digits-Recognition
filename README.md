@@ -43,7 +43,7 @@ This is the final project for the course Probabilistic graphical models.
   python digits_recognition_3.py (for learning the structure of digit 3) <br />
   
   ###### This will create model_3_*.csv which contains the structure learned for digit 3
-  ###### After the above file is created comment out all the lines from - to - in digits_recognition_3.py before doing the below 
+  ###### After the above file is created comment out all the lines from 452 to 475 in digits_recognition_3.py before doing the below 
   
 ##### 2. Run the Gibbs Sampling algorithm to do inference of the structure learned above
   python digit_infer.py
