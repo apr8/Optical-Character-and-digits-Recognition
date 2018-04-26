@@ -39,4 +39,13 @@ This is the final project for the course Probabilistic graphical models.
   digit_infer.py (contains source code for Gibbs Sampling which automatically runs the forward-backward algorithm)
   
 #### To run the digit recognition algorithms and to get the learned structure 
+##### 1. Run the forward-backward algorithm to learn the structure of the Ising Model
+  python digits_recognition_3.py (for learning the structure of digit 3) <br />
+  
+  ###### This will create 
+  
+##### 2. Run the Gibbs Sampling algorithm to do inference of the structure learned above
+  python digit_infer.py
+
+
   
