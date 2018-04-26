@@ -3,15 +3,15 @@ This is the final project for the course Probabilistic graphical models.
 
 # Character Recognition
 
-Below are the files for character recognition -
-  letter.data  (contains the OCR data used for character recognition)
-  data_reader.py (contains code for parsing the data)
-  naive_bayes.py (contains the Naive Bayes implementation)
-  viterbi.py (contains the Viterbi algorithm implementation)
-  main.py (to run the Character Recognition algorithm and get results)
-
-To run the Character Recogntion algorithms and get results please do the below -
-  python main.py
+Below are the files for character recognition - <br />
+  letter.data  (contains the OCR data used for character recognition) <br />
+  data_reader.py (contains code for parsing the data) <br />
+  naive_bayes.py (contains the Naive Bayes implementation) <br />
+  viterbi.py (contains the Viterbi algorithm implementation) <br />
+  main.py (to run the Character Recognition algorithm and get results) <br />
+<br />
+To run the Character Recogntion algorithms and get results please do the below - <br />
+  python main.py <br />
 
 
 # Digit Recognition
