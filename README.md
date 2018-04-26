@@ -31,6 +31,9 @@ This is the final project for the course Probabilistic graphical models.
   te_X.txt <br />
   te_y.txt <br />
   
+#### To run the logistic regression algorithm for USPS digit data run the below file in matlab - <br />
+  logistic_classify.m
+  
 #### Below are the files containing the Forward-Backward Greedy algorithm for leaning the Ising Model Structure -
 ##### Source Code files -
   digits_recognition_2.py  (contains the source code for learning structure of digit 2) <br />
